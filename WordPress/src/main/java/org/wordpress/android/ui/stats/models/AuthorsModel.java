@@ -3,6 +3,7 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.util.AppLog;
 
 import java.util.ArrayList;
@@ -17,8 +18,8 @@ public class AuthorsModel extends BaseStatsModel {
     private int mOtherViews;
     private List<AuthorModel> mAuthors;
 
-    public AuthorsModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public AuthorsModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mPeriod = response.getString("period");
         this.mDate = response.getString("date");
 
@@ -40,7 +41,7 @@ public class AuthorsModel extends BaseStatsModel {
             for (int i = 0; i < authorsJSONArray.length(); i++) {
                 try {
                     JSONObject currentAuthorJSON = authorsJSONArray.getJSONObject(i);
-                    AuthorModel currentAuthor = new AuthorModel(blogID, mDate, currentAuthorJSON);
+                    AuthorModel currentAuthor = new AuthorModel(mSite, mDate, currentAuthorJSON);
                     mAuthors.add(currentAuthor);
                 } catch (JSONException e) {
                     AppLog.e(AppLog.T.STATS, "Unexpected Author object " +

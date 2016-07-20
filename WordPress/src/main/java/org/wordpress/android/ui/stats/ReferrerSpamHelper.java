@@ -78,15 +78,18 @@ class ReferrerSpamHelper {
                 final String restPath;
                 final boolean isMarkingAsSpamInProgress;
                 if (referrerGroup.isMarkedAsSpam) {
-                    restPath = String.format("/sites/%s/stats/referrers/spam/delete/?domain=%s", referrerGroup.getBlogId(), getDomain(referrerGroup));
+                    restPath = String.format("/sites/%s/stats/referrers/spam/delete/?domain=%s",
+                            referrerGroup.getSite().getSiteId(), getDomain(referrerGroup));
                     isMarkingAsSpamInProgress = false;
                 } else {
-                    restPath = String.format("/sites/%s/stats/referrers/spam/new/?domain=%s", referrerGroup.getBlogId(), getDomain(referrerGroup));
+                    restPath = String.format("/sites/%s/stats/referrers/spam/new/?domain=%s",
+                            referrerGroup.getSite().getSiteId(), getDomain(referrerGroup));
                     isMarkingAsSpamInProgress = true;
                 }
 
                 referrerGroup.isRestCallInProgress = true;
-                ReferrerSpamRestListener vListener = new ReferrerSpamRestListener(mActivityRef.get(), referrerGroup, isMarkingAsSpamInProgress);
+                ReferrerSpamRestListener vListener = new ReferrerSpamRestListener(mActivityRef.get(),
+                        referrerGroup, isMarkingAsSpamInProgress);
                 restClientUtils.post(restPath, vListener, vListener);
                 AppLog.d(AppLog.T.STATS, "Enqueuing the following REST request " + restPath);
                 return true;
@@ -119,10 +122,8 @@ class ReferrerSpamHelper {
                 boolean success = response.optBoolean("success");
                 if (success) {
                     mReferrerGroup.isMarkedAsSpam = isMarkingAsSpamInProgress;
-                    int localBlogID = StatsUtils.getLocalBlogIdFromRemoteBlogId(
-                            Integer.parseInt(mReferrerGroup.getBlogId())
-                    );
-                    StatsTable.deleteStatsForBlog(mActivityRef.get(), localBlogID, StatsService.StatsEndpointsEnum.REFERRERS);
+                    StatsTable.deleteStatsForBlog(mActivityRef.get(), mReferrerGroup.getSite().getId(),
+                            StatsService.StatsEndpointsEnum.REFERRERS);
                 } else {
                     // It's not a success. Something went wrong on the server
                     String errorMessage = null;

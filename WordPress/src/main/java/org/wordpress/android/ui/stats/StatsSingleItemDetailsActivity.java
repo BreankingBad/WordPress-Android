@@ -30,7 +30,9 @@ import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
 import org.wordpress.android.analytics.AnalyticsTracker;
 import org.wordpress.android.networking.RestClientUtils;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.ui.ActivityId;
+import org.wordpress.android.ui.ActivityLauncher;
 import org.wordpress.android.ui.stats.models.PostViewsModel;
 import org.wordpress.android.ui.stats.models.VisitModel;
 import org.wordpress.android.util.AnalyticsUtils;
@@ -52,9 +54,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  *  Single item details activity.
  */
 public class StatsSingleItemDetailsActivity extends AppCompatActivity
-        implements StatsBarGraph.OnGestureListener{
-
-    public static final String ARG_REMOTE_BLOG_ID = "ARG_REMOTE_BLOG_ID";
+        implements StatsBarGraph.OnGestureListener {
     public static final String ARG_REMOTE_ITEM_ID = "ARG_REMOTE_ITEM_ID";
     public static final String ARG_REMOTE_ITEM_TYPE = "ARG_REMOTE_ITEM_TYPE";
     public static final String ARG_ITEM_TITLE = "ARG_ITEM_TITLE";
@@ -65,6 +65,7 @@ public class StatsSingleItemDetailsActivity extends AppCompatActivity
     private static final String SAVED_STATS_SCROLL_POSITION = "SAVED_STATS_SCROLL_POSITION";
 
     private boolean mIsUpdatingStats;
+    private SiteModel mSite;
     private SwipeToRefreshHelper mSwipeToRefreshHelper;
     private ScrollViewExt mOuterScrollView;
 
@@ -155,8 +156,8 @@ public class StatsSingleItemDetailsActivity extends AppCompatActivity
         mOuterScrollView = (ScrollViewExt) findViewById(R.id.scroll_view_stats);
 
         if (savedInstanceState != null) {
+            mSite = (SiteModel) savedInstanceState.getSerializable(ActivityLauncher.EXTRA_SITE);
             mRemoteItemID = savedInstanceState.getString(ARG_REMOTE_ITEM_ID);
-            mRemoteBlogID = savedInstanceState.getString(ARG_REMOTE_BLOG_ID);
             mRemoteItemType = savedInstanceState.getString(ARG_REMOTE_ITEM_TYPE);
             mItemTitle = savedInstanceState.getString(ARG_ITEM_TITLE);
             mItemURL = savedInstanceState.getString(ARG_ITEM_URL);
@@ -185,8 +186,8 @@ public class StatsSingleItemDetailsActivity extends AppCompatActivity
             }
         } else if (getIntent() != null && getIntent().getExtras() != null) {
             Bundle extras = getIntent().getExtras();
+            mSite = (SiteModel) extras.getSerializable(ActivityLauncher.EXTRA_SITE);
             mRemoteItemID = extras.getString(ARG_REMOTE_ITEM_ID);
-            mRemoteBlogID = extras.getString(ARG_REMOTE_BLOG_ID);
             mRemoteItemType = extras.getString(ARG_REMOTE_ITEM_TYPE);
             mItemTitle = extras.getString(ARG_ITEM_TITLE);
             mItemURL = extras.getString(ARG_ITEM_URL);
@@ -219,7 +220,7 @@ public class StatsSingleItemDetailsActivity extends AppCompatActivity
                     public void onClick(View v) {
                         final Context ctx = v.getContext();
                         StatsUtils.openPostInReaderOrInAppWebview(ctx,
-                                mRemoteBlogID,
+                                mSite,
                                 mRemoteItemID,
                                 mRemoteItemType,
                                 mItemURL);
@@ -237,7 +238,7 @@ public class StatsSingleItemDetailsActivity extends AppCompatActivity
     protected void onSaveInstanceState(Bundle outState) {
         outState.putInt(ARG_SELECTED_GRAPH_BAR, mSelectedBarGraphIndex);
         outState.putInt(ARG_PREV_NUMBER_OF_BARS, mPrevNumberOfBarsGraph);
-        outState.putString(ARG_REMOTE_BLOG_ID, mRemoteBlogID);
+        outState.putSerializable(ActivityLauncher.EXTRA_SITE, mSite);
         outState.putString(ARG_REMOTE_ITEM_ID, mRemoteItemID);
         outState.putString(ARG_REMOTE_ITEM_TYPE, mRemoteItemType);
         outState.putString(ARG_ITEM_TITLE, mItemTitle);

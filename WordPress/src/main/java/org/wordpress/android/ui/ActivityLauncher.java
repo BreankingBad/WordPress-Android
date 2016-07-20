@@ -199,12 +199,12 @@ public class ActivityLauncher {
     /*
      * Load the post preview as an authenticated URL so stats aren't bumped
      */
-    public static void browsePostOrPage(Context context, Blog blog, Post post) {
-        if (blog == null || post == null || TextUtils.isEmpty(post.getPermaLink())) return;
+    public static void browsePostOrPage(Context context, SiteModel site, Post post) {
+        if (site == null || post == null || TextUtils.isEmpty(post.getPermaLink())) return;
 
         // always add the preview parameter to avoid bumping stats when viewing posts
         String url = UrlUtils.appendUrlParameter(post.getPermaLink(), "preview", "true");
-        WPWebViewActivity.openUrlByUsingBlogCredentials(context, blog, post, url);
+        WPWebViewActivity.openUrlByUsingBlogCredentials(context, site, post, url);
     }
 
     public static void addMedia(Activity activity) {
@@ -262,24 +262,19 @@ public class ActivityLauncher {
         }
     }
 
-    public static void viewStatsSinglePostDetails(Context context, Post post, boolean isPage) {
+    public static void viewStatsSinglePostDetails(Context context, SiteModel site, Post post, boolean isPage) {
         if (post == null) return;
 
-        int remoteBlogId = WordPress.wpDB.getRemoteBlogIdForLocalTableBlogId(post.getLocalTableBlogId());
-        PostModel postModel = new PostModel(
-                Integer.toString(remoteBlogId),
-                post.getRemotePostId(),
-                post.getTitle(),
-                post.getLink(),
+        PostModel postModel = new PostModel(site, post.getRemotePostId(), post.getTitle(), post.getLink(),
                 isPage ? StatsConstants.ITEM_TYPE_PAGE : StatsConstants.ITEM_TYPE_POST);
-        viewStatsSinglePostDetails(context, postModel);
+        viewStatsSinglePostDetails(context, site, postModel);
     }
 
-    public static void viewStatsSinglePostDetails(Context context, PostModel post) {
+    public static void viewStatsSinglePostDetails(Context context, SiteModel site, PostModel post) {
         if (post == null) return;
 
         Intent statsPostViewIntent = new Intent(context, StatsSingleItemDetailsActivity.class);
-        statsPostViewIntent.putExtra(StatsSingleItemDetailsActivity.ARG_REMOTE_BLOG_ID, post.getBlogID());
+        statsPostViewIntent.putExtra(ActivityLauncher.EXTRA_SITE, site);
         statsPostViewIntent.putExtra(StatsSingleItemDetailsActivity.ARG_REMOTE_ITEM_ID, post.getItemID());
         statsPostViewIntent.putExtra(StatsSingleItemDetailsActivity.ARG_REMOTE_ITEM_TYPE, post.getPostType());
         statsPostViewIntent.putExtra(StatsSingleItemDetailsActivity.ARG_ITEM_TITLE, post.getTitle());
@@ -298,9 +293,7 @@ public class ActivityLauncher {
             intent.putExtra(ARG_DID_SLIDE_IN_FROM_RIGHT, true);
             Activity activity = (Activity) context;
             ActivityOptionsCompat options = ActivityOptionsCompat.makeCustomAnimation(
-                    activity,
-                    R.anim.activity_slide_in_from_right,
-                    R.anim.do_nothing);
+                    activity, R.anim.activity_slide_in_from_right, R.anim.do_nothing);
             ActivityCompat.startActivity(activity, intent, options.toBundle());
         } else {
             context.startActivity(intent);

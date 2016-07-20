@@ -3,6 +3,7 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.ui.stats.StatsConstants;
 
 import java.util.ArrayList;
@@ -11,7 +12,6 @@ import java.util.List;
 
 public class CommentsModel extends BaseStatsModel {
     private String mDate;
-    private String mBlogID;
     private int mMonthlyComments;
     private int mTotalComments;
     private String mMostActiveDay;
@@ -21,8 +21,8 @@ public class CommentsModel extends BaseStatsModel {
     private List<PostModel> mPosts;
     private List<AuthorModel> mAuthors;
 
-    public CommentsModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public CommentsModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mDate = response.getString("date");
 
         this.mMonthlyComments = response.getInt("monthly_comments");
@@ -40,7 +40,8 @@ public class CommentsModel extends BaseStatsModel {
                 String name = currentPostJSON.getString("name");
                 int totals = currentPostJSON.getInt("comments");
                 String link = currentPostJSON.getString("link");
-                PostModel currentPost = new PostModel(blogID, mDate, itemID, name, totals, link, StatsConstants.ITEM_TYPE_POST);
+                PostModel currentPost = new PostModel(site, mDate, itemID, name, totals, link, StatsConstants
+                        .ITEM_TYPE_POST);
                 mPosts.add(currentPost);
             }
         }
@@ -55,18 +56,10 @@ public class CommentsModel extends BaseStatsModel {
                 String url = currentAuthorJSON.getString("link");
                 String gravatar = currentAuthorJSON.getString("gravatar");
                 JSONObject followData = currentAuthorJSON.optJSONObject("follow_data");
-                AuthorModel currentAuthor = new AuthorModel(blogID, mDate, url, name, gravatar, comments, followData);
+                AuthorModel currentAuthor = new AuthorModel(site, mDate, url, name, gravatar, comments, followData);
                 mAuthors.add(currentAuthor);
             }
         }
-    }
-
-    public String getBlogID() {
-        return mBlogID;
-    }
-
-    public void setBlogID(String blogID) {
-        this.mBlogID = blogID;
     }
 
     public String getDate() {

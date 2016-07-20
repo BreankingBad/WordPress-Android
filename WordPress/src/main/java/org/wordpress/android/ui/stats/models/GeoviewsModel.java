@@ -3,6 +3,7 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,8 +18,8 @@ public class GeoviewsModel extends BaseStatsModel {
     private int totalViews;
     private List<GeoviewModel> countries;
 
-    public GeoviewsModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public GeoviewsModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mDate = response.getString("date");
 
         JSONObject jDaysObject = response.getJSONObject("days");

@@ -3,6 +3,7 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.util.AppLog;
 
 import java.util.ArrayList;
@@ -13,12 +14,11 @@ import java.util.List;
 public class SearchTermsModel extends BaseStatsModel {
     private String mPeriod;
     private String mDate;
-    private String mBlogID;
     private List<SearchTermModel> mSearchTerms;
     private int mEncryptedSearchTerms, mOtherSearchTerms, mTotalSearchTerms;
 
-    public SearchTermsModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public SearchTermsModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mPeriod = response.getString("period");
         this.mDate = response.getString("date");
 
@@ -51,7 +51,7 @@ public class SearchTermsModel extends BaseStatsModel {
                 JSONObject postObject = searchTermsArray.getJSONObject(i);
                 String term = postObject.getString("term");
                 int total = postObject.getInt("views");
-                SearchTermModel currentModel = new SearchTermModel(blogID, mDate, term, total, false);
+                SearchTermModel currentModel = new SearchTermModel(site, mDate, term, total, false);
                 list.add(currentModel);
             } catch (JSONException e) {
                 AppLog.e(AppLog.T.STATS, "Unexpected SearchTerm object in searchterms array" +
@@ -60,14 +60,6 @@ public class SearchTermsModel extends BaseStatsModel {
         }
 
         this.mSearchTerms = list;
-    }
-
-    public String getBlogID() {
-        return mBlogID;
-    }
-
-    public void setBlogID(String blogID) {
-        this.mBlogID = blogID;
     }
 
     public String getDate() {

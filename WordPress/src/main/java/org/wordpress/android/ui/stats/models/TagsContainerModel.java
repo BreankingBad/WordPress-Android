@@ -3,17 +3,17 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class TagsContainerModel extends BaseStatsModel {
     private String mDate;
-    private String mBlogID;
     private List<TagsModel> mTags;
 
-    public TagsContainerModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public TagsContainerModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mDate = response.getString("date");
         JSONArray outerTags = response.getJSONArray("tags");
         if (outerTags != null) {
@@ -27,14 +27,6 @@ public class TagsContainerModel extends BaseStatsModel {
 
     public List<TagsModel> getTags() {
         return mTags;
-    }
-
-    public String getBlogId() {
-        return mBlogID;
-    }
-
-    public void setBlogId(String blogId) {
-        this.mBlogID = blogId;
     }
 
     public String getDate() {

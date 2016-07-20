@@ -163,7 +163,7 @@ public class StatsInsightsLatestPostSummaryFragment extends StatsAbstractInsight
             @Override
             public void onClick(View v) {
                 StatsUtils.openPostInReaderOrInAppWebview(getActivity(),
-                        mInsightsLatestPostModel.getBlogID(),
+                        mInsightsLatestPostModel.getSite(),
                         String.valueOf(mInsightsLatestPostModel.getPostID()),
                         StatsConstants.ITEM_TYPE_POST,
                         mInsightsLatestPostModel.getPostURL());
@@ -243,12 +243,12 @@ public class StatsInsightsLatestPostSummaryFragment extends StatsAbstractInsight
             }
 
             PostModel postModel = new PostModel(
-                    mInsightsLatestPostModel.getBlogID(),
+                    mInsightsLatestPostModel.getSite(),
                     String.valueOf(mInsightsLatestPostModel.getPostID()),
                     mInsightsLatestPostModel.getPostTitle(),
                     mInsightsLatestPostModel.getPostURL(),
                     StatsConstants.ITEM_TYPE_POST);
-            ActivityLauncher.viewStatsSinglePostDetails(getActivity(), postModel);
+            ActivityLauncher.viewStatsSinglePostDetails(getActivity(), mSite, postModel);
         }
     };
 

@@ -10,7 +10,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
-import org.wordpress.android.models.Blog;
 import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.ui.WPWebViewActivity;
 import org.wordpress.android.ui.reader.ReaderActivityLauncher;
@@ -85,7 +84,7 @@ public class StatsUtils {
      * Get the current date of the blog in the form of yyyy-MM-dd (EX: 2013-07-18) *
      */
     public static String getCurrentDateTZ(SiteModel site) {
-        String timezone = StatsUtils.getBlogTimezone(site);
+        String timezone = site.getTimezone();
         if (timezone == null) {
             AppLog.w(T.UTILS, "Timezone is null. Returning the device time!!");
             return getCurrentDate();
@@ -98,7 +97,7 @@ public class StatsUtils {
      * Get the current datetime of the blog *
      */
     public static String getCurrentDateTimeTZ(SiteModel site) {
-        String timezone = StatsUtils.getBlogTimezone(site);
+        String timezone = site.getTimezone();
         if (timezone == null) {
             AppLog.w(T.UTILS, "Timezone is null. Returning the device time!");
             return getCurrentDatetime();
@@ -111,9 +110,9 @@ public class StatsUtils {
      * Get the current datetime of the blog in Ms *
      */
     public static long getCurrentDateTimeMsTZ(SiteModel site) {
-        String timezone = site
+        String timezone = site.getTimezone();
         if (timezone == null) {
-            AppLog.w(T.UTILS, "Timezone is null. Returning the device time!");
+            AppLog.w(T.UTILS, "Site timezone is null, returning device time.");
             return new Date().getTime();
         }
         String pattern = "yyyy-MM-dd HH:mm:ss"; // precision to seconds
@@ -318,76 +317,76 @@ public class StatsUtils {
         }
     }
 
-    public static synchronized BaseStatsModel parseResponse(StatsService.StatsEndpointsEnum endpointName, String blogID, JSONObject response)
+    public static synchronized BaseStatsModel parseResponse(StatsService.StatsEndpointsEnum endpointName,
+                                                            SiteModel site, JSONObject response)
             throws JSONException {
         BaseStatsModel model = null;
         switch (endpointName) {
             case VISITS:
-                model = new VisitsModel(blogID, response);
+                model = new VisitsModel(site, response);
                 break;
             case TOP_POSTS:
-                model = new TopPostsAndPagesModel(blogID, response);
+                model = new TopPostsAndPagesModel(site, response);
                 break;
             case REFERRERS:
-                model = new ReferrersModel(blogID, response);
+                model = new ReferrersModel(site, response);
                 break;
             case CLICKS:
-                model = new ClicksModel(blogID, response);
+                model = new ClicksModel(site, response);
                 break;
             case GEO_VIEWS:
-                model = new GeoviewsModel(blogID, response);
+                model = new GeoviewsModel(site, response);
                 break;
             case AUTHORS:
-                model = new AuthorsModel(blogID, response);
+                model = new AuthorsModel(site, response);
                 break;
             case VIDEO_PLAYS:
-                model = new VideoPlaysModel(blogID, response);
+                model = new VideoPlaysModel(site, response);
                 break;
             case COMMENTS:
-                model = new CommentsModel(blogID, response);
+                model = new CommentsModel(site, response);
                 break;
             case FOLLOWERS_WPCOM:
-                model = new FollowersModel(blogID, response);
+                model = new FollowersModel(site, response);
                 break;
             case FOLLOWERS_EMAIL:
-                model = new FollowersModel(blogID, response);
+                model = new FollowersModel(site, response);
                 break;
             case COMMENT_FOLLOWERS:
-                model = new CommentFollowersModel(blogID, response);
+                model = new CommentFollowersModel(site, response);
                 break;
             case TAGS_AND_CATEGORIES:
-                model = new TagsContainerModel(blogID, response);
+                model = new TagsContainerModel(site, response);
                 break;
             case PUBLICIZE:
-                model = new PublicizeModel(blogID, response);
+                model = new PublicizeModel(site, response);
                 break;
             case SEARCH_TERMS:
-                model = new SearchTermsModel(blogID, response);
+                model = new SearchTermsModel(site, response);
                 break;
             case INSIGHTS_ALL_TIME:
-                model = new InsightsAllTimeModel(blogID, response);
+                model = new InsightsAllTimeModel(site, response);
                 break;
             case INSIGHTS_POPULAR:
-                model = new InsightsPopularModel(blogID, response);
+                model = new InsightsPopularModel(site, response);
                 break;
             case INSIGHTS_TODAY:
-                model = new InsightsTodayModel(blogID, response);
+                model = new InsightsTodayModel(site, response);
                 break;
             case INSIGHTS_LATEST_POST_SUMMARY:
-                model = new InsightsLatestPostModel(blogID, response);
+                model = new InsightsLatestPostModel(site, response);
                 break;
             case INSIGHTS_LATEST_POST_VIEWS:
-                model = new InsightsLatestPostDetailsModel(blogID, response);
+                model = new InsightsLatestPostDetailsModel(site, response);
                 break;
         }
         return model;
     }
 
-    public static void openPostInReaderOrInAppWebview(Context ctx, final String remoteBlogID,
+    public static void openPostInReaderOrInAppWebview(Context ctx, final SiteModel site,
                                                       final String remoteItemID,
                                                       final String itemType,
                                                       final String itemURL) {
-        final long blogID = Long.parseLong(remoteBlogID);
         final long itemID = Long.parseLong(remoteItemID);
         if (itemType == null) {
             // If we don't know the type of the item, open it with the browser.
@@ -398,22 +397,12 @@ public class StatsUtils {
             // If the post/page has ID == 0 is the home page, and we need to load the blog preview,
             // otherwise 404 is returned if we try to show the post in the reader
             if (itemID == 0) {
-                ReaderActivityLauncher.showReaderBlogPreview(
-                        ctx,
-                        blogID
-                );
+                ReaderActivityLauncher.showReaderBlogPreview(ctx, site);
             } else {
-                ReaderActivityLauncher.showReaderPostDetail(
-                        ctx,
-                        blogID,
-                        itemID
-                );
+                ReaderActivityLauncher.showReaderPostDetail(ctx, site, itemID);
             }
         } else if (itemType.equals(StatsConstants.ITEM_TYPE_HOME_PAGE)) {
-            ReaderActivityLauncher.showReaderBlogPreview(
-                    ctx,
-                    blogID
-            );
+            ReaderActivityLauncher.showReaderBlogPreview(ctx, site);
         } else {
             AppLog.d(AppLog.T.UTILS, "Opening the in-app browser: " + itemURL);
             WPWebViewActivity.openURL(ctx, itemURL);

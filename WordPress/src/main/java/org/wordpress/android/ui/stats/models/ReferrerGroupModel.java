@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.ui.stats.StatsUtils;
 import org.wordpress.android.util.JSONUtils;
 
@@ -17,7 +18,7 @@ import java.util.List;
  * A model to represent a referrer group stat
  */
 public class ReferrerGroupModel implements Serializable {
-    private String mBlogId;
+    private SiteModel mSite;
     private long mDate;
 
     private String mGroupId;
@@ -30,8 +31,8 @@ public class ReferrerGroupModel implements Serializable {
     public transient boolean isRestCallInProgress = false;
     public transient boolean isMarkedAsSpam = false;
 
-    public ReferrerGroupModel(String blogId, String date, JSONObject groupJSON) throws JSONException {
-        setBlogId(blogId);
+    public ReferrerGroupModel(SiteModel site, String date, JSONObject groupJSON) throws JSONException {
+        mSite = site;
         setDate(StatsUtils.toMs(date));
 
         setGroupId(groupJSON.getString("group"));
@@ -50,7 +51,7 @@ public class ReferrerGroupModel implements Serializable {
             mResults = new ArrayList<>();
             for (int i = 0; i < resultsArray.length(); i++) {
                 JSONObject currentResultJSON = resultsArray.getJSONObject(i);
-                ReferrerResultModel currentResultModel = new ReferrerResultModel(blogId,
+                ReferrerResultModel currentResultModel = new ReferrerResultModel(site,
                         date, currentResultJSON);
                 mResults.add(currentResultModel);
             }
@@ -62,14 +63,6 @@ public class ReferrerGroupModel implements Serializable {
                 }
             });
         }
-    }
-
-    public String getBlogId() {
-        return mBlogId;
-    }
-
-    private void setBlogId(String blogId) {
-        this.mBlogId = blogId;
     }
 
     public long getDate() {
@@ -121,4 +114,8 @@ public class ReferrerGroupModel implements Serializable {
     }
 
     public List<ReferrerResultModel> getResults() { return mResults; }
+
+    public SiteModel getSite() {
+        return mSite;
+    }
 }

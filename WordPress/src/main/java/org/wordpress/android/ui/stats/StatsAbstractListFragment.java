@@ -16,6 +16,7 @@ import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import org.wordpress.android.R;
+import org.wordpress.android.ui.ActivityLauncher;
 import org.wordpress.android.util.DisplayUtils;
 import org.wordpress.android.widgets.TypefaceCache;
 
@@ -213,7 +214,7 @@ public abstract class StatsAbstractListFragment extends StatsAbstractFragment {
                 }
 
                 Intent viewAllIntent = new Intent(getActivity(), StatsViewAllActivity.class);
-                viewAllIntent.putExtra(StatsActivity.ARG_LOCAL_TABLE_SITE_ID, getLocalTableBlogID());
+                viewAllIntent.putExtra(ActivityLauncher.EXTRA_SITE, mSite);
                 viewAllIntent.putExtra(StatsAbstractFragment.ARGS_TIMEFRAME, getTimeframe());
                 viewAllIntent.putExtra(StatsAbstractFragment.ARGS_VIEW_TYPE, getViewType());
                 viewAllIntent.putExtra(StatsAbstractFragment.ARGS_SELECTED_DATE, getDate());

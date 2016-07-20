@@ -2,6 +2,7 @@ package org.wordpress.android.ui.stats;
 
 import com.android.volley.VolleyError;
 
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.ui.stats.models.AuthorsModel;
 import org.wordpress.android.ui.stats.models.ClicksModel;
 import org.wordpress.android.ui.stats.models.CommentFollowersModel;
@@ -30,14 +31,14 @@ public class StatsEvents {
     }
 
     public abstract static class SectionUpdatedAbstract {
-        public final String mRequestBlogId; // This is the remote blog ID
+        public final SiteModel mSite;
         public final StatsTimeframe mTimeframe;
         public final String mDate;
         public final int mMaxResultsRequested, mPageRequested;
 
-        public SectionUpdatedAbstract(String blogId, StatsTimeframe timeframe, String date,
+        public SectionUpdatedAbstract(SiteModel site, StatsTimeframe timeframe, String date,
                                       final int maxResultsRequested, final int pageRequested) {
-            mRequestBlogId = blogId;
+            mSite = site;
             mDate = date;
             mTimeframe = timeframe;
             mMaxResultsRequested = maxResultsRequested;
@@ -50,9 +51,10 @@ public class StatsEvents {
         public final VolleyError mError;
         public final StatsEndpointsEnum mEndPointName;
 
-        public SectionUpdateError(StatsEndpointsEnum endPointName, String blogId, StatsTimeframe timeframe, String date,
-                                      final int maxResultsRequested, final int pageRequested, VolleyError error) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+        public SectionUpdateError(StatsEndpointsEnum endPointName, SiteModel site, StatsTimeframe timeframe,
+                                  String date, final int maxResultsRequested, final int pageRequested, VolleyError
+                                          error) {
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mEndPointName = endPointName;
             mError = error;
         }
@@ -62,9 +64,9 @@ public class StatsEvents {
 
         public final VisitsModel mVisitsAndViews;
 
-        public VisitorsAndViewsUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public VisitorsAndViewsUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                        final int maxResultsRequested, final int pageRequested, VisitsModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mVisitsAndViews = responseObjectModel;
         }
     }
@@ -73,9 +75,9 @@ public class StatsEvents {
 
         public final TopPostsAndPagesModel mTopPostsAndPagesModel;
 
-        public TopPostsUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public TopPostsUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                final int maxResultsRequested, final int pageRequested, TopPostsAndPagesModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mTopPostsAndPagesModel = responseObjectModel;
         }
     }
@@ -84,9 +86,9 @@ public class StatsEvents {
 
         public final ReferrersModel mReferrers;
 
-        public ReferrersUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public ReferrersUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                 final int maxResultsRequested, final int pageRequested, ReferrersModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mReferrers = responseObjectModel;
         }
     }
@@ -95,9 +97,9 @@ public class StatsEvents {
 
         public final ClicksModel mClicks;
 
-        public ClicksUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public ClicksUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                              final int maxResultsRequested, final int pageRequested, ClicksModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mClicks = responseObjectModel;
         }
     }
@@ -107,9 +109,9 @@ public class StatsEvents {
 
         public final AuthorsModel mAuthors;
 
-        public AuthorsUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public AuthorsUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                               final int maxResultsRequested, final int pageRequested, AuthorsModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mAuthors = responseObjectModel;
         }
     }
@@ -118,9 +120,9 @@ public class StatsEvents {
 
         public final GeoviewsModel mCountries;
 
-        public CountriesUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public CountriesUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                 final int maxResultsRequested, final int pageRequested, GeoviewsModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mCountries = responseObjectModel;
         }
     }
@@ -129,9 +131,9 @@ public class StatsEvents {
 
         public final VideoPlaysModel mVideos;
 
-        public VideoPlaysUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public VideoPlaysUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                  final int maxResultsRequested, final int pageRequested, VideoPlaysModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mVideos = responseObjectModel;
         }
     }
@@ -140,9 +142,9 @@ public class StatsEvents {
 
         public final SearchTermsModel mSearchTerms;
 
-        public SearchTermsUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public SearchTermsUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                   final int maxResultsRequested, final int pageRequested, SearchTermsModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mSearchTerms = responseObjectModel;
         }
     }
@@ -151,9 +153,9 @@ public class StatsEvents {
 
         public final CommentsModel mComments;
 
-        public CommentsUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public CommentsUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                final int maxResultsRequested, final int pageRequested, CommentsModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mComments = responseObjectModel;
         }
     }
@@ -162,9 +164,9 @@ public class StatsEvents {
 
         public final CommentFollowersModel mCommentFollowers;
 
-        public CommentFollowersUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public CommentFollowersUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                        final int maxResultsRequested, final int pageRequested, CommentFollowersModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mCommentFollowers = responseObjectModel;
         }
     }
@@ -173,9 +175,9 @@ public class StatsEvents {
 
         public final TagsContainerModel mTagsContainer;
 
-        public TagsUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public TagsUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                               final int maxResultsRequested, final int pageRequested, TagsContainerModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mTagsContainer = responseObjectModel;
         }
     }
@@ -184,9 +186,9 @@ public class StatsEvents {
 
         public final PublicizeModel mPublicizeModel;
 
-        public PublicizeUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public PublicizeUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                            final int maxResultsRequested, final int pageRequested, PublicizeModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mPublicizeModel = responseObjectModel;
         }
     }
@@ -195,9 +197,9 @@ public class StatsEvents {
 
         public final FollowersModel mFollowers;
 
-        public FollowersWPCOMUdated(String blogId, StatsTimeframe timeframe, String date,
+        public FollowersWPCOMUdated(SiteModel site, StatsTimeframe timeframe, String date,
                                 final int maxResultsRequested, final int pageRequested, FollowersModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mFollowers = responseObjectModel;
         }
     }
@@ -206,9 +208,9 @@ public class StatsEvents {
 
         public final FollowersModel mFollowers;
 
-        public FollowersEmailUdated(String blogId, StatsTimeframe timeframe, String date,
+        public FollowersEmailUdated(SiteModel site, StatsTimeframe timeframe, String date,
                                     final int maxResultsRequested, final int pageRequested, FollowersModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mFollowers = responseObjectModel;
         }
     }
@@ -217,9 +219,9 @@ public class StatsEvents {
 
         public final InsightsAllTimeModel mInsightsAllTimeModel;
 
-        public InsightsAllTimeUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public InsightsAllTimeUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                       final int maxResultsRequested, final int pageRequested, InsightsAllTimeModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mInsightsAllTimeModel = responseObjectModel;
         }
     }
@@ -228,9 +230,9 @@ public class StatsEvents {
 
         public final InsightsPopularModel mInsightsPopularModel;
 
-        public InsightsPopularUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public InsightsPopularUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                       final int maxResultsRequested, final int pageRequested, InsightsPopularModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mInsightsPopularModel = responseObjectModel;
         }
     }
@@ -239,10 +241,10 @@ public class StatsEvents {
 
         public final InsightsLatestPostModel mInsightsLatestPostModel;
 
-        public InsightsLatestPostSummaryUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public InsightsLatestPostSummaryUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                       final int maxResultsRequested, final int pageRequested,
                                                 InsightsLatestPostModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mInsightsLatestPostModel = responseObjectModel;
         }
     }
@@ -251,26 +253,11 @@ public class StatsEvents {
 
         public final InsightsLatestPostDetailsModel mInsightsLatestPostDetailsModel;
 
-        public InsightsLatestPostDetailsUpdated(String blogId, StatsTimeframe timeframe, String date,
+        public InsightsLatestPostDetailsUpdated(SiteModel site, StatsTimeframe timeframe, String date,
                                                 final int maxResultsRequested, final int pageRequested,
                                                 InsightsLatestPostDetailsModel responseObjectModel) {
-            super(blogId, timeframe, date, maxResultsRequested, pageRequested);
+            super(site, timeframe, date, maxResultsRequested, pageRequested);
             mInsightsLatestPostDetailsModel = responseObjectModel;
-        }
-    }
-
-    public static class JetpackSettingsCompleted {
-        public final boolean isError;
-        public JetpackSettingsCompleted(boolean isError) {
-            this.isError = isError;
-        }
-    }
-
-    public static class JetpackAuthError {
-        public final int mLocalBlogId; // This is the local blogID
-
-        public JetpackAuthError(int blogId) {
-            mLocalBlogId = blogId;
         }
     }
 }

@@ -1,6 +1,7 @@
 package org.wordpress.android.ui.stats.models;
 
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 
 public class InsightsPopularModel extends BaseStatsModel {
     private final int mHighestHour;
@@ -9,20 +10,12 @@ public class InsightsPopularModel extends BaseStatsModel {
     private final Double mHighestHourPercent;
     private String mBlogID;
 
-    public InsightsPopularModel(String blogID, JSONObject response) {
-        this.setBlogID(blogID);
+    public InsightsPopularModel(SiteModel site, JSONObject response) {
+        super(site);
         this.mHighestDayOfWeek = response.optInt("highest_day_of_week");
         this.mHighestHour = response.optInt("highest_hour");
         this.mHighestDayPercent = response.optDouble("highest_day_percent");
         this.mHighestHourPercent = response.optDouble("highest_hour_percent");
-    }
-
-    public String getBlogID() {
-        return mBlogID;
-    }
-
-    private void setBlogID(String blogID) {
-        this.mBlogID = blogID;
     }
 
     public int getHighestHour() {

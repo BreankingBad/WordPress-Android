@@ -3,6 +3,7 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.ui.stats.StatsUtils;
 import org.wordpress.android.util.JSONUtils;
 
@@ -22,9 +23,10 @@ public class AuthorModel implements Serializable {
     private int mViews;
     private FollowDataModel mFollowData;
     private List<PostModel> mPosts;
+    private SiteModel mSite;
 
-    public AuthorModel(String mBlogId, String date, String mGroupId, String mName, String mAvatar, int mViews, JSONObject followData) throws JSONException {
-        this.mBlogId = mBlogId;
+    public AuthorModel(SiteModel site, String date, String mGroupId, String mName, String mAvatar, int mViews, JSONObject followData) throws JSONException {
+        this.mSite = site;
         setDate(StatsUtils.toMs(date));
         this.mGroupId = mGroupId;
         this.mName = mName;
@@ -35,8 +37,8 @@ public class AuthorModel implements Serializable {
         }
     }
 
-    public AuthorModel(String blogId, String date, JSONObject authorJSON) throws JSONException {
-        setBlogId(blogId);
+    public AuthorModel(SiteModel site, String date, JSONObject authorJSON) throws JSONException {
+        this.mSite = site;
         setDate(StatsUtils.toMs(date));
 
         setGroupId(authorJSON.getString("name"));
@@ -58,7 +60,7 @@ public class AuthorModel implements Serializable {
             String title = currentPostJSON.getString("title");
             int views = currentPostJSON.getInt("views");
             String url = currentPostJSON.getString("url");
-            PostModel currentPost = new PostModel(mBlogId, mDate, postId, title, views, url);
+            PostModel currentPost = new PostModel(site, mDate, postId, title, views, url);
             mPosts.add(currentPost);
         }
     }

@@ -102,7 +102,7 @@ public class ThemeWebActivity extends WPWebViewActivity {
             return;
         }
 
-        String authURL = ThemeWebActivity.getBlogLoginUrl(blog);
+        String authURL = ThemeWebActivity.getSiteLoginUrl(blog);
         Intent intent = new Intent(activity, ThemeWebActivity.class);
         intent.putExtra(ThemeWebActivity.AUTHENTICATION_USER, blog.getUsername());
         intent.putExtra(ThemeWebActivity.AUTHENTICATION_PASSWD, blog.getPassword());

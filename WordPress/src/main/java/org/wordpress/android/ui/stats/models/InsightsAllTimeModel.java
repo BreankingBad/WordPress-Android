@@ -2,6 +2,7 @@ package org.wordpress.android.ui.stats.models;
 
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 
 public class InsightsAllTimeModel extends BaseStatsModel {
 
@@ -14,8 +15,8 @@ public class InsightsAllTimeModel extends BaseStatsModel {
     private int mViewsBestDayTotal;
 
 
-    public InsightsAllTimeModel(String blogID, JSONObject response) throws JSONException {
-        this.setBlogID(blogID);
+    public InsightsAllTimeModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mDate = response.getString("date");
         JSONObject stats = response.getJSONObject("stats");
         this.mPosts = stats.optInt("posts");

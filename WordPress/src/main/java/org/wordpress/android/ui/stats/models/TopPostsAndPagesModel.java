@@ -3,6 +3,7 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.util.AppLog;
 
 import java.util.ArrayList;
@@ -13,11 +14,10 @@ import java.util.List;
 public class TopPostsAndPagesModel extends BaseStatsModel {
     private String mPeriod;
     private String mDate;
-    private String mBlogID;
     private List<PostModel> mTopPostsAndPages;
 
-    public TopPostsAndPagesModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public TopPostsAndPagesModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mPeriod = response.getString("period");
         this.mDate = response.getString("date");
         JSONArray postViewsArray = null;
@@ -48,7 +48,7 @@ public class TopPostsAndPagesModel extends BaseStatsModel {
                 String itemURL = postObject.getString("href");
                 String itemType = postObject.getString("type");
                 String itemDate = postObject.getString("date");
-                PostModel currentModel = new PostModel(blogID, itemDate, itemID, itemTitle,
+                PostModel currentModel = new PostModel(site, itemDate, itemID, itemTitle,
                         itemTotal, itemURL, itemType);
                 list.add(currentModel);
             } catch (JSONException e) {
@@ -57,14 +57,6 @@ public class TopPostsAndPagesModel extends BaseStatsModel {
             }
         }
         this.mTopPostsAndPages = list;
-    }
-
-    public String getBlogID() {
-        return mBlogID;
-    }
-
-    public void setBlogID(String blogID) {
-        this.mBlogID = blogID;
     }
 
     public String getDate() {

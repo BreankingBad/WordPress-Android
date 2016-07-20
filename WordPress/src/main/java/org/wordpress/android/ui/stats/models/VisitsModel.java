@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.StringUtils;
 
@@ -16,11 +17,10 @@ public class VisitsModel extends BaseStatsModel {
     private String mFields; // Holds a JSON Object
     private String mUnit;
     private String mDate;
-    private String mBlogID;
     private List<VisitModel> mVisits;
 
-    public VisitsModel(String blogID, JSONObject response) throws JSONException {
-        this.setBlogID(blogID);
+    public VisitsModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.setDate(response.getString("date"));
         this.setUnit(response.getString("unit"));
         this.setFields(response.getJSONArray("fields").toString());
@@ -67,7 +67,7 @@ public class VisitsModel extends BaseStatsModel {
                 try {
                     JSONArray currentDayData = dataJSON.getJSONArray(i);
                     VisitModel currentVisitModel = new VisitModel();
-                    currentVisitModel.setBlogID(getBlogID());
+                    currentVisitModel.setSite(mSite);
                     currentVisitModel.setPeriod(currentDayData.getString(periodColumnIndex));
                     currentVisitModel.setViews(currentDayData.getInt(viewsColumnIndex));
                     currentVisitModel.setVisitors(currentDayData.getInt(visitorsColumnIndex));
@@ -84,14 +84,6 @@ public class VisitsModel extends BaseStatsModel {
 
     public List<VisitModel> getVisits() {
         return mVisits;
-    }
-
-    public String getBlogID() {
-        return mBlogID;
-    }
-
-    private void setBlogID(String blogID) {
-        this.mBlogID = blogID;
     }
 
     public String getDate() {

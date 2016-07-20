@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteStatement;
 
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.ui.stats.StatsTimeframe;
 import org.wordpress.android.ui.stats.service.StatsService.StatsEndpointsEnum;
 import org.wordpress.android.util.AppLog;
@@ -41,8 +42,9 @@ public class StatsTable {
     }
 
 
-    public static String getStats(final Context ctx, final int blogId, final StatsTimeframe timeframe, final String date,
-                                  final StatsEndpointsEnum sectionToUpdate, final int maxResultsRequested, final int pageRequested) {
+    public static String getStats(final Context ctx, final SiteModel site, final StatsTimeframe timeframe,
+                                  final String date, final StatsEndpointsEnum sectionToUpdate,
+                                  final int maxResultsRequested, final int pageRequested) {
         if (ctx == null) {
             AppLog.e(AppLog.T.STATS, "Cannot insert a null stats since the passed context is null. Context is required " +
                     "to access the DB.");
@@ -59,7 +61,7 @@ public class StatsTable {
                 + " LIMIT 1";
 
         String[] args = {
-                Integer.toString(blogId),
+                Integer.toString(site.getId()),
                 Integer.toString(sectionToUpdate.ordinal()),
                 Integer.toString(timeframe.ordinal()),
                 date,
@@ -98,8 +100,10 @@ public class StatsTable {
         return null;
     }
 
-    public static void insertStats(final Context ctx, final int blogId, final StatsTimeframe timeframe, final String date,
-                                   final StatsEndpointsEnum sectionToUpdate, final int maxResultsRequested, final int pageRequested,
+    public static void insertStats(final Context ctx, final SiteModel site, final StatsTimeframe timeframe,
+                                   final String date,
+                                   final StatsEndpointsEnum sectionToUpdate, final int maxResultsRequested,
+                                   final int pageRequested,
                                    final String jsonResponse, final long responseTimestamp) {
 
         if (ctx == null) {
@@ -128,7 +132,7 @@ public class StatsTable {
         SQLiteStatement stmt = db.compileStatement("INSERT INTO " + TABLE_NAME + " (blogID, type, timeframe, date, " +
                 "jsonData, maxResult, page, timestamp) VALUES (?1,?2,?3,?4,?5,?6,?7,?8)");
         try {
-            stmt.bindLong(1, blogId);
+            stmt.bindLong(1, site.getId());
             stmt.bindLong(2, sectionToUpdate.ordinal());
             stmt.bindLong(3, timeframe.ordinal());
             stmt.bindString(4, date);

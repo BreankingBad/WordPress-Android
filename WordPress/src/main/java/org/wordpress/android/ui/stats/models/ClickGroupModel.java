@@ -5,6 +5,7 @@ import android.text.TextUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.ui.stats.StatsUtils;
 import org.wordpress.android.util.JSONUtils;
 
@@ -16,7 +17,7 @@ import java.util.List;
  * A model to represent a click group stat
  */
 public class ClickGroupModel implements Serializable {
-    private String mBlogId;
+    private SiteModel mSite;
     private long mDate;
 
     private String mGroupId;
@@ -26,8 +27,8 @@ public class ClickGroupModel implements Serializable {
     private String mUrl;
     private List<SingleItemModel> mClicks;
 
-    public ClickGroupModel(String blogId, String date, JSONObject clickGroupJSON) throws JSONException {
-        setBlogId(blogId);
+    public ClickGroupModel(SiteModel site, String date, JSONObject clickGroupJSON) throws JSONException {
+        mSite = site;
         setDate(StatsUtils.toMs(date));
 
         setGroupId(clickGroupJSON.getString("name"));
@@ -47,18 +48,10 @@ public class ClickGroupModel implements Serializable {
                 int totals = currentResultJSON.getInt("views");
                 String icon = currentResultJSON.optString("icon");
                 String url = currentResultJSON.optString("url");
-                SingleItemModel rm = new SingleItemModel(blogId, date, null, name, totals, url, icon);
+                SingleItemModel rm = new SingleItemModel(site, date, null, name, totals, url, icon);
                 mClicks.add(rm);
             }
         }
-    }
-
-    public String getBlogId() {
-        return mBlogId;
-    }
-
-    private void setBlogId(String blogId) {
-        this.mBlogId = blogId;
     }
 
     public long getDate() {

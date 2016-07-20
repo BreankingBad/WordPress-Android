@@ -10,8 +10,9 @@ import com.android.volley.VolleyError;
 
 import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
-import org.wordpress.android.models.Blog;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.stores.store.AccountStore;
+import org.wordpress.android.ui.ActivityLauncher;
 import org.wordpress.android.ui.stats.service.StatsService;
 import org.wordpress.android.util.AppLog;
 
@@ -39,6 +40,7 @@ public abstract class StatsAbstractFragment extends Fragment {
     protected abstract void showPlaceholderUI();
     protected abstract void updateUI();
     protected abstract void showErrorUI(String label);
+    protected SiteModel mSite;
 
     @Inject AccountStore mAccountStore;
 
@@ -76,27 +78,12 @@ public abstract class StatsAbstractFragment extends Fragment {
             sections = sectionsToUpdate();
         }
 
-        //AppLog.d(AppLog.T.STATS, this.getClass().getCanonicalName() + " > refreshStats");
 
-        final Blog currentBlog = WordPress.getBlog(getLocalTableBlogID());
-        if (currentBlog == null) {
-            AppLog.w(AppLog.T.STATS, "Current blog is null. This should never happen here.");
+        if (mSite == null) {
+            AppLog.w(AppLog.T.STATS, "Current site is null. This should never happen here.");
             return;
         }
 
-        final String blogId = currentBlog.getDotComBlogId();
-        // Make sure the blogId is available.
-        if (blogId == null) {
-            AppLog.e(AppLog.T.STATS, "remote blogID is null: " + currentBlog.getHomeURL());
-            return;
-        }
-
-        // Check credentials for jetpack blogs first
-        if (!currentBlog.isDotcomFlag() && !currentBlog.hasValidJetpackCredentials()
-                && !mAccountStore.hasAccessToken()) {
-            AppLog.w(AppLog.T.STATS, "Current blog is a Jetpack blog without valid .com credentials stored");
-            return;
-        }
 
         // Do not pass the array of StatsEndpointsEnum to the Service. Otherwise we get
         // java.lang.RuntimeException: Unable to start service org.wordpress.android.ui.stats.service.StatsService
@@ -111,7 +98,7 @@ public abstract class StatsAbstractFragment extends Fragment {
 
         // start service to get stats
         Intent intent = new Intent(getActivity(), StatsService.class);
-        intent.putExtra(StatsService.ARG_BLOG_ID, blogId);
+        intent.putExtra(ActivityLauncher.EXTRA_SITE, mSite);
         intent.putExtra(StatsService.ARG_PERIOD, mStatsTimeframe);
         intent.putExtra(StatsService.ARG_DATE, mDate);
         if (isSingleView()) {
@@ -138,7 +125,10 @@ public abstract class StatsAbstractFragment extends Fragment {
             if (savedInstanceState.containsKey(ARGS_SELECTED_DATE)) {
                 mDate = savedInstanceState.getString(ARGS_SELECTED_DATE);
             }
+            mSite = (SiteModel) savedInstanceState.getSerializable(ActivityLauncher.EXTRA_SITE);
             restoreStatsData(savedInstanceState); // Each fragment will override this to restore fragment dependant data
+        } else {
+            mSite = (SiteModel) getArguments().getSerializable(ActivityLauncher.EXTRA_SITE);
         }
     }
 
@@ -150,12 +140,9 @@ public abstract class StatsAbstractFragment extends Fragment {
 
     @Override
     public void onSaveInstanceState(Bundle outState) {
-       /* AppLog.d(AppLog.T.STATS, this.getClass().getCanonicalName() + " > saving instance state");
-        AppLog.d(AppLog.T.STATS, "mStatsTimeframe: " + mStatsTimeframe.getLabel());
-        AppLog.d(AppLog.T.STATS, "mDate: " + mDate); */
-
         outState.putString(ARGS_SELECTED_DATE, mDate);
         outState.putSerializable(ARGS_TIMEFRAME, mStatsTimeframe);
+        outState.putSerializable(ActivityLauncher.EXTRA_SITE, mSite);
         saveStatsData(outState); // Each fragment will override this
         super.onSaveInstanceState(outState);
     }
@@ -206,9 +193,8 @@ public abstract class StatsAbstractFragment extends Fragment {
     }
 
     boolean isSameBlog(StatsEvents.SectionUpdatedAbstract event) {
-        final Blog currentBlog = WordPress.getBlog(getLocalTableBlogID());
-        if (currentBlog != null && currentBlog.getDotComBlogId() != null) {
-            return event.mRequestBlogId.equals(currentBlog.getDotComBlogId());
+        if (mSite != null) {
+            return event.mSite.getSiteId() == mSite.getSiteId();
         }
         return false;
     }
@@ -253,15 +239,17 @@ public abstract class StatsAbstractFragment extends Fragment {
         return false;
     }
 
-    public static StatsAbstractFragment newVisitorsAndViewsInstance(StatsViewType viewType, int localTableBlogID,
-                                                    StatsTimeframe timeframe, String date,  StatsVisitorsAndViewsFragment.OverviewLabel itemToSelect) {
-        StatsVisitorsAndViewsFragment fragment = (StatsVisitorsAndViewsFragment) newInstance(viewType, localTableBlogID, timeframe, date);
+    public static StatsAbstractFragment newVisitorsAndViewsInstance(StatsViewType viewType, SiteModel site,
+                                                                    StatsTimeframe timeframe, String date,
+                                                                    StatsVisitorsAndViewsFragment.OverviewLabel itemToSelect) {
+        StatsVisitorsAndViewsFragment fragment = (StatsVisitorsAndViewsFragment) newInstance(viewType,
+                site, timeframe, date);
         fragment.setSelectedOverviewItem(itemToSelect);
         return fragment;
     }
 
-    public static StatsAbstractFragment newInstance(StatsViewType viewType, int localTableBlogID,
-                                                    StatsTimeframe timeframe, String date ) {
+    public static StatsAbstractFragment newInstance(StatsViewType viewType, SiteModel site, StatsTimeframe timeframe,
+                                                    String date ) {
         StatsAbstractFragment fragment = null;
 
         switch (viewType) {
@@ -323,7 +311,7 @@ public abstract class StatsAbstractFragment extends Fragment {
 
         Bundle args = new Bundle();
         args.putSerializable(ARGS_VIEW_TYPE, viewType);
-        args.putInt(StatsActivity.ARG_LOCAL_TABLE_SITE_ID, localTableBlogID);
+        args.putSerializable(ActivityLauncher.EXTRA_SITE, site);
         fragment.setArguments(args);
 
         return fragment;
@@ -347,10 +335,6 @@ public abstract class StatsAbstractFragment extends Fragment {
 
     StatsViewType getViewType() {
         return (StatsViewType) getArguments().getSerializable(ARGS_VIEW_TYPE);
-    }
-
-    int getLocalTableBlogID() {
-        return getArguments().getInt(StatsActivity.ARG_LOCAL_TABLE_SITE_ID);
     }
 
     boolean isSingleView() {

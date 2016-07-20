@@ -1,23 +1,16 @@
 package org.wordpress.android.ui.stats.models;
 
+import org.wordpress.android.stores.model.SiteModel;
+
 import java.io.Serializable;
 
 public class VisitModel implements Serializable {
-
     private int mViews;
     private int mLikes;
     private int mVisitors;
     private int mComments;
     private String mPeriod;
-    private String mBlogID;
-
-    public String getBlogID() {
-        return mBlogID;
-    }
-
-    public void setBlogID(String blogID) {
-        this.mBlogID = blogID;
-    }
+    private SiteModel mSite;
 
     public int getViews() {
         return mViews;
@@ -59,4 +52,11 @@ public class VisitModel implements Serializable {
         this.mPeriod = period;
     }
 
+    public SiteModel getSite() {
+        return mSite;
+    }
+
+    public void setSite(SiteModel site) {
+        mSite = site;
+    }
 }

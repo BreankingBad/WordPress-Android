@@ -22,6 +22,8 @@ import org.wordpress.android.R;
 import org.wordpress.android.WordPress;
 import org.wordpress.android.analytics.AnalyticsTracker;
 import org.wordpress.android.models.Blog;
+import org.wordpress.android.stores.model.SiteModel;
+import org.wordpress.android.ui.ActivityLauncher;
 import org.wordpress.android.ui.main.WPMainActivity;
 import org.wordpress.android.ui.prefs.AppPrefs;
 import org.wordpress.android.ui.stats.exceptions.StatsError;
@@ -30,6 +32,7 @@ import org.wordpress.android.ui.stats.service.StatsService;
 import org.wordpress.android.util.AnalyticsUtils;
 import org.wordpress.android.util.AppLog;
 import org.wordpress.android.util.NetworkUtils;
+import org.wordpress.android.util.SiteUtils;
 
 import java.util.ArrayList;
 
@@ -79,7 +82,7 @@ public class StatsWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private static void showStatsData(Context context, int[] allWidgets, Blog blog, JSONObject data) {
+    private static void showStatsData(Context context, int[] allWidgets, SiteModel site, JSONObject data) {
         if (allWidgets.length == 0){
             return;
         }
@@ -87,7 +90,7 @@ public class StatsWidgetProvider extends AppWidgetProvider {
         AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
 
         String name = context.getString(R.string.stats_widget_name_for_blog);
-        name = String.format(name, StringEscapeUtils.unescapeHtml(blog.getNameOrHostUrl()));
+        name = String.format(name, StringEscapeUtils.unescapeHtml(SiteUtils.getSiteNameOrHomeURL(site)));
 
         for (int widgetId : allWidgets) {
             RemoteViews remoteViews = new RemoteViews(context.getPackageName(), R.layout.stats_widget_layout);
@@ -109,43 +112,42 @@ public class StatsWidgetProvider extends AppWidgetProvider {
             updateTabValue(context, remoteViews, R.id.stats_widget_likes, data.optString("likes", " 0"));
 
             Intent intent = new Intent(context, StatsActivity.class);
-            intent.putExtra(StatsActivity.ARG_LOCAL_TABLE_SITE_ID, blog.getLocalTableBlogId());
+            intent.putExtra(ActivityLauncher.EXTRA_SITE, site);
             intent.putExtra(StatsActivity.ARG_LAUNCHED_FROM, StatsActivity.StatsLaunchedFrom.STATS_WIDGET);
             intent.putExtra(StatsActivity.ARG_DESIRED_TIMEFRAME, StatsTimeframe.DAY);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, blog.getLocalTableBlogId(), intent, PendingIntent.FLAG_UPDATE_CURRENT);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, site.getId(), intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT);
 
             remoteViews.setOnClickPendingIntent(R.id.stats_widget_outer_container, pendingIntent);
             appWidgetManager.updateAppWidget(widgetId, remoteViews);
         }
     }
 
-    private static void ShowCacheIfAvailableOrGenericError(Context context, int remoteBlogID) {
-        int[] widgetIDs = getWidgetIDsFromRemoteBlogID(remoteBlogID);
+    private static void ShowCacheIfAvailableOrGenericError(Context context, SiteModel site) {
+        int[] widgetIDs = getWidgetIDsFromRemoteBlogID(site);
         if (widgetIDs.length == 0){
             return;
         }
 
-        int localId = StatsUtils.getLocalBlogIdFromRemoteBlogId(remoteBlogID);
-        Blog blog = WordPress.getBlog(localId);
-        if (blog == null) {
+        if (site == null) {
             AppLog.e(AppLog.T.STATS, "No blog found in the db!");
             return;
         }
 
-        String currentDate = StatsUtils.getCurrentDateTZ(localId);
+        String currentDate = StatsUtils.getCurrentDateTZ(site);
 
         // Show cached data if available
-        JSONObject cache = getCacheDataForBlog(remoteBlogID, currentDate);
+        JSONObject cache = getCacheDataForBlog(site, currentDate);
         if (cache != null) {
-            showStatsData(context, widgetIDs, blog, cache);
+            showStatsData(context, widgetIDs, site, cache);
         } else {
             showMessage(context, widgetIDs, context.getString(R.string.stats_widget_error_generic));
         }
     }
 
     // This is called by the Stats service in case of error
-    public static void updateWidgets(Context context, int remoteBlogID, VolleyError error) {
+    public static void updateWidgets(Context context, SiteModel site, VolleyError error) {
         if (error == null) {
             AppLog.e(AppLog.T.STATS, "Widget received a VolleyError that is null!");
             return;
@@ -153,19 +155,16 @@ public class StatsWidgetProvider extends AppWidgetProvider {
 
         // If it's an auth error, show it in the widget UI
         if (error instanceof com.android.volley.AuthFailureError) {
-            int[] widgetIDs = getWidgetIDsFromRemoteBlogID(remoteBlogID);
+            int[] widgetIDs = getWidgetIDsFromRemoteBlogID(site);
             if (widgetIDs.length == 0){
                 return;
             }
 
-            // Check if Jetpack or .com
-            int localId = StatsUtils.getLocalBlogIdFromRemoteBlogId(remoteBlogID);
-            Blog blog = WordPress.getBlog(localId);
-            if (blog == null) {
+            if (site == null) {
                 return;
             }
 
-            if (blog.isDotcomFlag()) {
+            if (site.isWPCom()) {
                 // User cannot access stats for this .com blog
                 showMessage(context, widgetIDs, context.getString(R.string.stats_widget_error_no_permissions));
             } else {
@@ -175,37 +174,36 @@ public class StatsWidgetProvider extends AppWidgetProvider {
             return;
         }
 
-        ShowCacheIfAvailableOrGenericError(context, remoteBlogID);
+        ShowCacheIfAvailableOrGenericError(context, site);
     }
 
     // This is called by the Stats service in case of error
-    public static void updateWidgets(Context context, int remoteBlogID, StatsError error) {
+    public static void updateWidgets(Context context, SiteModel site, StatsError error) {
         if (error == null) {
             AppLog.e(AppLog.T.STATS, "Widget received a StatsError that is null!");
             return;
         }
 
-        ShowCacheIfAvailableOrGenericError(context, remoteBlogID);
+        ShowCacheIfAvailableOrGenericError(context, site);
     }
 
     // This is called by the Stats service to keep widgets updated
-    public static void updateWidgets(Context context, int remoteBlogID, VisitModel data) {
-        AppLog.d(AppLog.T.STATS, "updateWidgets called for the blogID " + remoteBlogID);
+    public static void updateWidgets(Context context, SiteModel site, VisitModel data) {
+        AppLog.d(AppLog.T.STATS, "updateWidgets called for the siteId: " + site.getSiteId());
 
-        int[] widgetIDs = getWidgetIDsFromRemoteBlogID(remoteBlogID);
+        int[] widgetIDs = getWidgetIDsFromRemoteBlogID(site
+        );
         if (widgetIDs.length == 0){
             return;
         }
 
-        int localId = StatsUtils.getLocalBlogIdFromRemoteBlogId(remoteBlogID);
-        Blog blog = WordPress.getBlog(localId);
-        if (blog == null) {
+        if (site == null) {
             AppLog.e(AppLog.T.STATS, "No blog found in the db!");
             return;
         }
 
         try {
-            String currentDate = StatsUtils.getCurrentDateTZ(blog.getLocalTableBlogId());
+            String currentDate = StatsUtils.getCurrentDateTZ(site);
             JSONObject newData = new JSONObject();
             newData.put("blog_id", data.getBlogID());
             newData.put("date", currentDate);
@@ -235,7 +233,7 @@ public class StatsWidgetProvider extends AppWidgetProvider {
             }
 
             // Show data on the screen now!
-            showStatsData(context, widgetIDs, blog, newData);
+            showStatsData(context, widgetIDs, site, newData);
         } catch (JSONException e) {
             AppLog.e(AppLog.T.STATS, e);
         }
@@ -294,7 +292,7 @@ public class StatsWidgetProvider extends AppWidgetProvider {
         context.startService(intent);
     }
 
-    private static synchronized JSONObject getCacheDataForBlog(int remoteBlogID, String date) {
+    private static synchronized JSONObject getCacheDataForBlog(SiteModel site, String date) {
         String prevDataAsString = AppPrefs.getStatsWidgetsData();
         if (StringUtils.isEmpty(prevDataAsString)) {
             AppLog.i(AppLog.T.STATS, "No cache found for the widgets");
@@ -303,18 +301,19 @@ public class StatsWidgetProvider extends AppWidgetProvider {
 
         try {
             JSONObject prevData = new JSONObject(prevDataAsString);
-            if (!prevData.has(String.valueOf(remoteBlogID))) {
-                AppLog.i(AppLog.T.STATS, "No cache found for the blog ID " + remoteBlogID);
+            if (!prevData.has(String.valueOf(site.getSiteId()))) {
+                AppLog.i(AppLog.T.STATS, "No cache found for the blog ID " + site.getSiteId());
                 return null;
             }
 
-            JSONObject cache = prevData.getJSONObject(String.valueOf(remoteBlogID));
+            JSONObject cache = prevData.getJSONObject(String.valueOf(site.getSiteId()));
             String dateStoredInCache = cache.optString("date");
             if (date.equals(dateStoredInCache)) {
-                AppLog.i(AppLog.T.STATS, "Cache found for the blog ID " + remoteBlogID);
+                AppLog.i(AppLog.T.STATS, "Cache found for the blog ID " + site.getSiteId());
                 return cache;
             } else {
-                AppLog.i(AppLog.T.STATS, "Cache found for the blog ID " + remoteBlogID + " but the date value doesn't match!!");
+                AppLog.i(AppLog.T.STATS, "Cache found for the blog ID " + site.getSiteId()
+                        + " but the date value doesn't match!!");
                 return null;
             }
         } catch (JSONException e) {
@@ -323,7 +322,7 @@ public class StatsWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    public static synchronized boolean isBlogDisplayedInWidget(int remoteBlogID) {
+    public static synchronized boolean isBlogDisplayedInWidget(SiteModel site) {
         String prevWidgetKeysString = AppPrefs.getStatsWidgetsKeys();
         if (StringUtils.isEmpty(prevWidgetKeysString)) {
             return false;
@@ -337,7 +336,7 @@ public class StatsWidgetProvider extends AppWidgetProvider {
             for (int i=0; i < allKeys.length(); i ++) {
                 String currentKey = allKeys.getString(i);
                 int currentBlogID = prevKeys.getInt(currentKey);
-                if (currentBlogID == remoteBlogID) {
+                if (currentBlogID == site.getSiteId()) {
                     return true;
                 }
             }
@@ -347,7 +346,7 @@ public class StatsWidgetProvider extends AppWidgetProvider {
         return false;
     }
 
-    private static synchronized int[] getWidgetIDsFromRemoteBlogID(int remoteBlogID) {
+    private static synchronized int[] getWidgetIDsFromRemoteBlogID(SiteModel site) {
         String prevWidgetKeysString = AppPrefs.getStatsWidgetsKeys();
         if (StringUtils.isEmpty(prevWidgetKeysString)) {
             return new int[0];
@@ -363,8 +362,9 @@ public class StatsWidgetProvider extends AppWidgetProvider {
             for (int i=0; i < allKeys.length(); i ++) {
                 String currentKey = allKeys.getString(i);
                 int currentBlogID = prevKeys.getInt(currentKey);
-                if (currentBlogID == remoteBlogID) {
-                    AppLog.d(AppLog.T.STATS, "The blog with remoteID " + remoteBlogID + " is displayed in the widget " + currentKey);
+                if (currentBlogID == site.getSiteId()) {
+                    AppLog.d(AppLog.T.STATS, "The blog with remoteID " + site.getSiteId()
+                            + " is displayed in the widget " + currentKey);
                     widgetIDs.add(Integer.parseInt(currentKey));
                 }
             }

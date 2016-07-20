@@ -3,6 +3,7 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -12,13 +13,12 @@ import java.util.List;
 public class VideoPlaysModel extends BaseStatsModel {
     private String mPeriod;
     private String mDate;
-    private String mBlogID;
     private int mOtherPlays;
     private int mTotalPlays;
     private List<SingleItemModel> mPlays;
 
-    public VideoPlaysModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public VideoPlaysModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mPeriod = response.getString("period");
         this.mDate = response.getString("date");
 
@@ -43,18 +43,10 @@ public class VideoPlaysModel extends BaseStatsModel {
                 String title = currentVideoplaysJSON.getString("title");
                 int views = currentVideoplaysJSON.getInt("plays");
                 String url = currentVideoplaysJSON.getString("url");
-                SingleItemModel currentPost = new SingleItemModel(blogID, mDate, postId, title, views, url, null);
+                SingleItemModel currentPost = new SingleItemModel(site, mDate, postId, title, views, url, null);
                 mPlays.add(currentPost);
             }
         }
-    }
-
-    public String getBlogID() {
-        return mBlogID;
-    }
-
-    public void setBlogID(String blogID) {
-        this.mBlogID = blogID;
     }
 
     public String getDate() {

@@ -3,6 +3,7 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.util.AppLog;
 
 import java.util.ArrayList;
@@ -13,13 +14,12 @@ import java.util.List;
 public class ReferrersModel extends BaseStatsModel {
     private String mPeriod;
     private String mDate;
-    private String mBlogID;
     private int mOtherViews;
     private int mTotalViews;
     private List<ReferrerGroupModel> mGroups;
 
-    public ReferrersModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public ReferrersModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mPeriod = response.getString("period");
         this.mDate = response.getString("date");
 
@@ -42,7 +42,7 @@ public class ReferrersModel extends BaseStatsModel {
             for (int i = 0; i < jGroupsArray.length(); i++) {
                 try {
                     JSONObject currentGroupJSON = jGroupsArray.getJSONObject(i);
-                    ReferrerGroupModel currentGroupModel = new ReferrerGroupModel(blogID, mDate, currentGroupJSON);
+                    ReferrerGroupModel currentGroupModel = new ReferrerGroupModel(site, mDate, currentGroupJSON);
                     mGroups.add(currentGroupModel);
                 } catch (JSONException e) {
                     AppLog.e(AppLog.T.STATS, "Unexpected ReferrerGroupModel object " +
@@ -50,14 +50,6 @@ public class ReferrersModel extends BaseStatsModel {
                 }
             }
         }
-    }
-
-    public String getBlogID() {
-        return mBlogID;
-    }
-
-    public void setBlogID(String blogID) {
-        this.mBlogID = blogID;
     }
 
     public String getDate() {

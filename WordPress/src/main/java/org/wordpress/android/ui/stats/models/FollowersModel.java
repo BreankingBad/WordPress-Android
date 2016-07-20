@@ -3,6 +3,7 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.wordpress.android.stores.model.SiteModel;
 import org.wordpress.android.util.AppLog;
 
 import java.util.ArrayList;
@@ -18,8 +19,8 @@ public class FollowersModel extends BaseStatsModel {
     private int mTotalWPCom;
     private List<FollowerModel> mSubscribers;
 
-    public FollowersModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public FollowersModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
         this.mPage = response.getInt("page");
         this.mPages = response.getInt("pages");
         this.mTotal = response.getInt("total");

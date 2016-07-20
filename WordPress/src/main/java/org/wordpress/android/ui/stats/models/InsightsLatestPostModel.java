@@ -3,10 +3,9 @@ package org.wordpress.android.ui.stats.models;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-
+import org.wordpress.android.stores.model.SiteModel;
 
 public class InsightsLatestPostModel extends BaseStatsModel {
-    private String mBlogID;
     private String mPostTitle;
     private String mPostURL;
     private String mPostDate;
@@ -16,8 +15,8 @@ public class InsightsLatestPostModel extends BaseStatsModel {
     private int mPostLikeCount;
     private int mPostsFound; // if 0 there are no posts on the blog.
 
-    public InsightsLatestPostModel(String blogID, JSONObject response) throws JSONException {
-        this.mBlogID = blogID;
+    public InsightsLatestPostModel(SiteModel site, JSONObject response) throws JSONException {
+        super(site);
 
         mPostsFound = response.optInt("found", 0);
         if (mPostsFound == 0) {
@@ -47,10 +46,6 @@ public class InsightsLatestPostModel extends BaseStatsModel {
 
     public boolean isLatestPostAvailable() {
         return mPostsFound > 0;
-    }
-
-    public String getBlogID() {
-        return mBlogID;
     }
 
     public String getPostDate() {
